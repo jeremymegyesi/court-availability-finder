@@ -1,0 +1,75 @@
+{
+    "Panorama": {
+        "baseURL": "https://panoramarec.perfectmind.com/22938/Clients/BookMe4LandingPages",
+        "daysCount": 7,
+        "serviceId": "0fd3ec87-8d68-43a5-94fc-7ec00c883536",
+        "durationIds": [
+            "77c351b2-cce5-4956-9338-000da04b8b4a",
+            "95f9e5f6-028c-4f57-aae8-12fb4c705674",
+            "f12d952d-706b-4a80-ad56-1f38a3f31220",
+            "9c02fcef-7683-4bc5-bd73-2439d204ab16",
+            "68843ce4-24fd-471c-8bd6-7d9a89a89e7d",
+            "b89d6fd2-332c-4053-9f24-ab95828379e2"
+        ],
+        "facilities": [
+            {
+                "name": "Court #1",
+                "facilityId": "70d80c45-a7cf-4584-94fb-bb74f3dbac5d"
+            },
+            {
+                "name": "Court #2",
+                "facilityId": "998a84a2-e7c5-4aad-9754-88729131c830"
+            },
+            {
+                "name": "Court #3",
+                "facilityId": "d63251ab-5c31-43bf-9cba-c91465b8bdf3"
+            },
+            {
+                "name": "Court #4",
+                "facilityId": "9ed3d785-b932-46df-a93e-48749b0d4476"
+            }
+        ]
+    },
+    "Oak Bay": {
+        "baseURL": "https://oakbayrec.perfectmind.com/22950/Clients/BookMe4LandingPages",
+        "daysCount": "7",
+        "serviceId": "1be46a16-6407-4530-a5f6-bf97096ed5d5",
+        "durationIds": [
+            "e1a5adac-2ac4-4718-aa3f-11494e6d940d",
+            "9c24350f-306e-4239-a131-2068351c0d57",
+            "833ba85f-b5d2-480c-a2c7-3b85f9e3be71",
+            "0ee7e5c6-aebf-44e6-9611-3d30b96b7973",
+            "145413d1-694d-4438-90dd-8b9c6367ca66"
+        ],
+        "facilities": [
+            {
+                "name": "Court #1",
+                "facilityId": "ad0ca135-e5e4-4703-8e7a-aa4fa512f43f"
+            },
+            {
+                "name": "Court #2",
+                "facilityId": "ad8f5674-dea9-403e-9bcf-b936d2cf2f6a"
+            },
+            {
+                "name": "Court #3",
+                "facilityId": "f9f68ff4-bba7-4a8f-8c16-6fdb1f5ab78b"
+            },
+            {
+                "name": "Court #4",
+                "facilityId": "fa4f9e7d-3cbf-43e3-afd7-301b8abc114f"
+            },
+            {
+                "name": "Court #5",
+                "facilityId": "d53d696a-8074-468b-8e0b-3a3d4b11a3c3"
+            },
+            {
+                "name": "Court #6",
+                "facilityId": "e9fa3422-3b1e-48c0-b0fd-f377fd4dcff1"
+            },
+            {
+                "name": "Court #7",
+                "facilityId": "51cd37c4-180f-4b6f-b895-3601bf0b3c4a"
+            }
+        ]
+    }
+}
