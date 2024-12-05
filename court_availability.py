@@ -7,7 +7,6 @@ import asyncio
 import aiohttp
 import date_utils
 
-
 class color:
    PURPLE = '\033[95m'
    CYAN = '\033[96m'
@@ -23,7 +22,7 @@ class color:
 # compares a given spot with inputted availability
 def spot_matches_avail(spot, avail):
     for availWindow in avail:
-        if (date_utils.is_day_between(spot['day'], availWindow['dayStart'], availWindow['dayEnd']) and \
+        if (date_utils.is_day_between(spot['date'].strftime('%a').lower(), availWindow['dayStart'], availWindow['dayEnd']) and \
             not spot['timeStart'] < availWindow['timeStart'] and \
             not spot['timeEnd'] > availWindow['timeEnd']):
             return True
@@ -59,7 +58,7 @@ def get_user_input():
 async def request_data(facility_data, location_data, duration):
     async with aiohttp.ClientSession() as session:
         # need get req to set session cookies and obtain rv token before availability post req
-        async with session.get(f"{facility_data['baseURL']}/Facility?facilityId={facility_data['facilityId']}") as get_req:
+        async with session.get(f'{facility_data['baseURL']}/Facility?facilityId={facility_data['facilityId']}') as get_req:
             content = await get_req.read()
             soup = BeautifulSoup(content, 'lxml')
             form_token = soup.find('input', attrs={'name': '__RequestVerificationToken'})['value']
@@ -76,7 +75,7 @@ async def request_data(facility_data, location_data, duration):
                 post_data.append(('durationIds[]', durationId))
 
             r = await session.post(
-                f"{facility_data['baseURL']}/FacilityAvailability",
+                f'{facility_data['baseURL']}/FacilityAvailability',
                 data=post_data,
             )
             return await r.read()
@@ -92,10 +91,8 @@ def get_matches(booking_avail, personal_avail, labels, duration):
         # Convert milliseconds to seconds and create a datetime object
         timestamp_sec = timestamp_ms / 1000
         date = datetime.fromtimestamp(timestamp_sec, tz=timezone.utc)
-        # Get the day of the week
-        day_of_week = date.strftime("%a").lower()
         # Skip non-matching days
-        if (not filter(lambda x: date_utils.is_day_between(day_of_week, x.dayStart, x.dayEnd), personal_avail)):
+        if (not filter(lambda x: date_utils.is_day_between(date.strftime('%a').lower(), x.dayStart, x.dayEnd), personal_avail)):
             next
         for bookingGroup in day['BookingGroups']:
             for availableSpot in bookingGroup['AvailableSpots']:
@@ -108,9 +105,9 @@ def get_matches(booking_avail, personal_avail, labels, duration):
                 formattedSpot = {
                     'location': labels['location'],
                     'facility': labels['facility'],
-                    'day': day_of_week,
                     'timeStart': start_time,
-                    'timeEnd': end_time
+                    'timeEnd': end_time,
+                    'date': date
                 }
                 if (spot_matches_avail(formattedSpot, personal_avail)):
                     matches.append(formattedSpot)
@@ -132,8 +129,8 @@ async def get_facility_matches(location, location_data, facility, duration, avai
 
 async def main():
     user_input = get_user_input()
-    duration = user_input["duration"]
-    avail = user_input["availability"]
+    duration = user_input['duration']
+    avail = user_input['availability']
 
     # load facility data from file
     with open('facility_data.json', 'r') as file:
@@ -151,14 +148,16 @@ async def main():
     flattened_matches = [item for sublist in all_matches for item in sublist]
 
     # sort results by time
-    sorted(flattened_matches, key = lambda x: (x['day'], x['timeStart'], x['location'], x['facility']))
+    sorted_matches = sorted(flattened_matches, key = lambda x: (x['date'], x['timeStart'].strftime('%p%I%M'), x['location'], x['facility']))
 
     # print availability matches
-    if (len(flattened_matches) < 1):
+    if (len(sorted_matches) < 1):
         print('There are currently no available time slots')
     else:
-        for match in flattened_matches:
-            print(f'{match['location']} {match['facility']} - {match['day']} {match['timeStart']}-{match['timeEnd']}')
+        print('\n########## MATCHING AVAILABILITY ##########')
+        for match in sorted_matches:
+            print(f'{match['date'].strftime('%a (%b %d)').upper()} - {match['timeStart'].strftime('%I:%M%p')}-{match['timeEnd'].strftime('%I:%M%p')} - ' +
+                  f'{match['location']} {match['facility']}')
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     asyncio.run(main())
