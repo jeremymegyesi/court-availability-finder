@@ -1,13 +1,13 @@
 from requests_html import HTMLSession
 from bs4 import BeautifulSoup
-from datetime import datetime, timezone, timedelta
+import datetime
 import json
 import re
 import asyncio
 import aiohttp
 import date_utils
 
-class color:
+class TextEffect:
    PURPLE = '\033[95m'
    CYAN = '\033[96m'
    DARKCYAN = '\033[36m'
@@ -17,42 +17,94 @@ class color:
    RED = '\033[91m'
    BOLD = '\033[1m'
    UNDERLINE = '\033[4m'
+   ITALICS = '\x1B[3m'
    END = '\033[0m'
+
+DURATION_OPTIONS = [30, 60, 90, 120]
 
 # compares a given spot with inputted availability
 def spot_matches_avail(spot, avail):
-    for availWindow in avail:
-        if (date_utils.is_day_between(spot['date'].strftime('%a').lower(), availWindow['dayStart'], availWindow['dayEnd']) and \
-            not spot['timeStart'] < availWindow['timeStart'] and \
-            not spot['timeEnd'] > availWindow['timeEnd']):
+    for avail_window in avail:
+        if (
+            (
+                avail_window['start_date'] == 'any' or 
+                date_utils.is_day_between(spot['start_time'].date(), avail_window['start_date'], avail_window['end_date'])
+            ) and not spot['start_time'].time() < avail_window['start_time'] and
+            not spot['end_time'].time() > avail_window['end_time']
+        ):
             return True
     return False
 
-def get_user_input():
-    # prompt user for availability
-    duration = int(input(color.BOLD + 'Enter duration (mins): ' + color.END))
-    rawAvail = input(color.BOLD + 'Enter availability...' + color.END + '\n\
-    (ex. "tue 06-22:30,thu-fri 08:30-12")\n\
-    ("any xx-xx" - any day of week. blank for all availability):\n')
-
-    # TODO: validate user input
-
+def parse_availability_input(_avail):
     # parse user input
-    avail = rawAvail.split(',')
+    avail = _avail.split(',')
     for i, window in enumerate(avail):
         window = window.split(' ')
+
         day = window[0].split('-')
-        t = window[1].split('-')
-        avail[i] = {
-            'dayStart': day[0],
-            'dayEnd': day[1] if len(day) == 2 else day[0],
-            'timeStart': date_utils.extract_time(t[0]),
-            'timeEnd': date_utils.extract_time(t[1])
-        }
+        time = window[1].split('-') if len(window) == 2 else []
+        # time window should have 2 elements (start and end) or not be included
+        # if not included, will match any time of day
+        if len(time) != 2 and len(time) != 0:
+            return None
+        
+        if len(day) == 1 and day[0].lower() == 'any':
+            start_date = 'any'
+            end_date = 'any'
+        else:
+            start_date = date_utils.extract_date(day[0])
+            end_date = date_utils.extract_date(day[1]) if len(day) == 2 else start_date
+
+        start_time = date_utils.extract_time(time[0]) if time else datetime.time(0, 0, 0)
+        end_time = date_utils.extract_time(time[1]) if time else datetime.time(23, 59, 59, 999999)
+
+        if not (start_date and end_date and start_time and end_time):
+            return None
+        
+        avail[i] = {key: locals()[key] for key in ['start_date', 'end_date', 'start_time', 'end_time']} 
+    return avail
+
+# TODO: Add location selection
+def get_user_input(facility_data):
+    duration = None
+    while duration is None:
+        try:
+            _duration = int(input(TextEffect.BOLD + TextEffect.BLUE + '\nDuration (mins)?\n' + TextEffect.END +
+                                TextEffect.ITALICS + 'Enter one of ' + str(DURATION_OPTIONS) + TextEffect.END + ':\n'))
+            if _duration in DURATION_OPTIONS:
+                duration = _duration
+            else:
+                raise ValueError()
+            
+        except ValueError:
+            print(TextEffect.RED + '\nERROR: Invalid duration. Try again.\n' + TextEffect.END)
+
+    avail = None
+    while avail is None:
+        _avail = input(TextEffect.BOLD + TextEffect.BLUE + '\nDates and times?\n' + TextEffect.END +
+            TextEffect.ITALICS + '(ex. "tue 06-22:30,thu-fri,2025/02/12 08:30-12")\n' +
+            '("any xx-xx" - any day of week. Leave time window blank for all-day availability):\n' + TextEffect.END)
+        avail = parse_availability_input(_avail)
+        if avail is None:
+            print(TextEffect.RED + '\nERROR: Invalid availability. Try again.\n' + TextEffect.END)
+
+    location = None
+    while location is None:
+        _location = input(TextEffect.BOLD + TextEffect.BLUE + '\nWhich location?\n' + TextEffect.END +
+                          TextEffect.ITALICS + 'Choose one of ' + ", ".join(list(facility_data.keys())) +
+                          ' or leave blank for all locations:\n' + TextEffect.END)
+        if not _location:
+            break
+        if _location.lower() in (x.lower() for x in list(facility_data.keys())):
+            location = _location
+
+        if location is None:
+            print(TextEffect.RED + '\nERROR: Invalid location. Try again.\n' + TextEffect.END)
 
     return {
         'duration': duration,
-        'availability': avail
+        'availability': avail,
+        'location': location
     }
 
 async def request_data(facility_data, location_data, duration):
@@ -67,7 +119,7 @@ async def request_data(facility_data, location_data, duration):
                 ('facilityId', facility_data['facilityId']),
                 ('daysCount', facility_data['daysCount']),
                 ('serviceId', facility_data['serviceId']),
-                ('date', datetime.now(timezone.utc).isoformat()),
+                ('date', datetime.date.today().isoformat()),
                 ('duration', duration),
                 ('__RequestVerificationToken', form_token),
             ]
@@ -90,24 +142,23 @@ def get_matches(booking_avail, personal_avail, labels, duration):
         timestamp_ms = int(re.findall(r'\d+', date)[0])
         # Convert milliseconds to seconds and create a datetime object
         timestamp_sec = timestamp_ms / 1000
-        date = datetime.fromtimestamp(timestamp_sec, tz=timezone.utc)
+        date = datetime.datetime.fromtimestamp(timestamp_sec, tz=datetime.timezone.utc)
         # Skip non-matching days
-        if (not filter(lambda x: date_utils.is_day_between(date.strftime('%a').lower(), x.dayStart, x.dayEnd), personal_avail)):
+        if (not filter(lambda x: x.start_date == 'any' or date_utils.is_day_between(date.strftime('%a').lower(), x.start_date, x.end_date), personal_avail)):
             next
         for bookingGroup in day['BookingGroups']:
             for availableSpot in bookingGroup['AvailableSpots']:
                 # calculate end time
-                start_time = date_utils.extract_time(f'{availableSpot['Time']['Hours']}:{availableSpot['Time']['Minutes']}')
-                datetime_obj = datetime.combine(datetime.today(), start_time)
-                new_datetime = datetime_obj + timedelta(minutes=duration)
-                # Extract the updated time
-                end_time = new_datetime.time()
+                start_time = datetime.datetime.combine(
+                    date,
+                    date_utils.extract_time(f'{availableSpot['Time']['Hours']}:{availableSpot['Time']['Minutes']}')
+                )
+                end_time = start_time + datetime.timedelta(minutes=duration)
                 formattedSpot = {
                     'location': labels['location'],
                     'facility': labels['facility'],
-                    'timeStart': start_time,
-                    'timeEnd': end_time,
-                    'date': date
+                    'start_time': start_time,
+                    'end_time': end_time
                 }
                 if (spot_matches_avail(formattedSpot, personal_avail)):
                     matches.append(formattedSpot)
@@ -127,19 +178,27 @@ async def get_facility_matches(location, location_data, facility, duration, avai
     }
     return get_matches(json.loads(r.decode('utf-8')), avail, facility_labels, duration)
 
+# TODO: add price estimate
 async def main():
-    user_input = get_user_input()
+    # load facility data from file
+    try:
+        with open('facility_data.json', 'r') as file:
+            facility_data = json.load(file)
+    except FileNotFoundError:
+        raise Exception('Error occurred reading the facility configuration file')
+
+    user_input = get_user_input(facility_data)
     duration = user_input['duration']
     avail = user_input['availability']
-
-    # load facility data from file
-    with open('facility_data.json', 'r') as file:
-        facility_data = json.load(file)
+    location = user_input['location']
 
     all_matches = []
     tasks = []
+    locations = list(facility_data.keys()) if location == 'any' else \
+        [next(x for x in facility_data.keys() if x.lower() == location)]
+    
     # iterate through facilities to check their availabilities
-    for location in facility_data:
+    for location in locations:
         location_data = facility_data[location]
         for facility in location_data['facilities']:
             tasks.append(get_facility_matches(location, location_data, facility, duration, avail))
@@ -148,16 +207,17 @@ async def main():
     flattened_matches = [item for sublist in all_matches for item in sublist]
 
     # sort results by time
-    sorted_matches = sorted(flattened_matches, key = lambda x: (x['date'], x['timeStart'].strftime('%p%I%M'), x['location'], x['facility']))
+    sorted_matches = sorted(flattened_matches, key = lambda x: (x['start_time'], x['location'], x['facility']))
 
     # print availability matches
     if (len(sorted_matches) < 1):
         print('There are currently no available time slots')
     else:
-        print('\n########## MATCHING AVAILABILITY ##########')
+        print(TextEffect.GREEN + TextEffect.BOLD + '\n########## MATCHING AVAILABILITY ##########' + TextEffect.END)
         for match in sorted_matches:
-            print(f'{match['date'].strftime('%a (%b %d)').upper()} - {match['timeStart'].strftime('%I:%M%p')}-{match['timeEnd'].strftime('%I:%M%p')} - ' +
+            print(f'{match['start_time'].strftime('%a (%b %d)').upper()} - {match['start_time'].strftime('%I:%M%p')}-{match['end_time'].strftime('%I:%M%p')} - ' +
                   f'{match['location']} {match['facility']}')
+        print('\n' + TextEffect.END)
 
 if __name__ == '__main__':
     asyncio.run(main())
