@@ -94,6 +94,7 @@ def get_user_input(facility_data):
                           TextEffect.ITALICS + 'Choose one of ' + ", ".join(list(facility_data.keys())) +
                           ' or leave blank for all locations:\n' + TextEffect.END)
         if not _location:
+            location = 'any'
             break
         if _location.lower() in (x.lower() for x in list(facility_data.keys())):
             location = _location
