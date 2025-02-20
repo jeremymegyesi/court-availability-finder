@@ -1,0 +1,5 @@
+FIELD_FRAME_PAD = 20
+FIELD_ENTRY_PAD = 5
+HEADER_1_FONT = 'Roboto 14 bold'
+BODY_1_FONT = 'Roboto 12'
+BUTTON_FONT = 'Roboto 14'

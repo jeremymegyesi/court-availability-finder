@@ -12,7 +12,7 @@ def is_day_between(target_day, start_day, end_day):
     return target_day >= start_day and target_day <= end_day
 
 def extract_date(date_str):
-    """expected date_str: "2025/02/05", "wed", "wednesday\n
+    """expected date_str: "2/20/2025", "2025/02/05", "wed", "wednesday"\n
     returns date object
     """
     _date = None
