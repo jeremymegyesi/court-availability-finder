@@ -9,6 +9,7 @@ sys.path.append(os.path.dirname(SCRIPT_DIR))
 from ui_elements.constants import *
 from ui_elements.field_input import FieldInput, FieldInputType
 from ui_elements.time_entry import TimeEntry
+from ui_elements.ui_utils import lighten_color
 import date_utils
 
 DATE_PICKER_WIDTH = 12
@@ -19,12 +20,12 @@ WINDOW_BOTTOM_PAD = 20
 class DatetimeWindow(ttk.Frame):
     '''Date and time pickers to allow date and time ranges to be specified.'''
     
-    def __init__(self, parent, parent_bg_color, row, **kwargs):
+    def __init__(self, parent, row, **kwargs):
         super().__init__(parent, **kwargs)
 
-        bg_color = self._lighten_color(parent_bg_color)
-        style_prefix = 'DTW'
         style = ttk.Style()
+        bg_color = lighten_color(style.lookup('TFrame', 'background'))
+        style_prefix = 'DTW'
         style.configure(style_prefix + '.Bordered.TFrame', background=bg_color, borderwidth=BORDER_WIDTH, relief='solid')
         style.configure(style_prefix + '.TFrame', background=bg_color)
         style.configure(style_prefix + '.TLabel', background=bg_color, font=BODY_1_FONT)
@@ -44,7 +45,7 @@ class DatetimeWindow(ttk.Frame):
         self._from_time_entry = TimeEntry(time_window_frame, 0, 0)
         time_until_label = ttk.Label(time_window_frame, text='-', style=(style_prefix + '.TLabel'))
         time_until_label.grid(row=0, column=1, padx=10)
-        self._to_time_entry = TimeEntry(time_window_frame, 0, 2)
+        self._to_time_entry = TimeEntry(time_window_frame, 0, 2, default='23:59')
 
 
     def get(self):
@@ -57,21 +58,10 @@ class DatetimeWindow(ttk.Frame):
         }
         return user_input
 
-    def _lighten_color(self, color, factor=0.2):
-        '''Lightens an RGB color by blending it with white.'''
-        hex_color = color.strip("#")
-        r, g, b = int(hex_color[0:2], 16), int(hex_color[2:4], 16), int(hex_color[4:6], 16)
-        # Lighten color by blending with white (255, 255, 255)
-        r = int(r + (255 - r) * factor)
-        g = int(g + (255 - g) * factor)
-        b = int(b + (255 - b) * factor)
-        # Convert back to Tkinter format (#RRGGBB)
-        return f'#{r:02x}{g:02x}{b:02x}'
-
 # Example usage
 def test():
     root = ttk.Window(themename='darkly')
-    win = DatetimeWindow(root, root.style.lookup('TFrame', 'background'), 0)
+    DatetimeWindow(root, 0)
     root.mainloop()
 
 if __name__ == '__main__':

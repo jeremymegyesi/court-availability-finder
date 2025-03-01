@@ -40,7 +40,7 @@ class FieldInput(ttk.Frame):
             case FieldInputType.DROPDOWN:
                 self._input = create_menu_button(self, field_frame, params['menu_options'], params['default_value'], 'secondary.TMenubutton')
             case FieldInputType.DATE:
-                self._input =  ttk.DateEntry(field_frame, width=input_width, dateformat='%Y/%m/%d')
+                self._input =  ttk.DateEntry(field_frame, width=input_width, dateformat='%Y/%m/%d', bootstyle=SECONDARY)
         
         self._input.grid(row=0, column=1, padx=FIELD_ENTRY_PAD, pady=FIELD_ENTRY_PAD)
         

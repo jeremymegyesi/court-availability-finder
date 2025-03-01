@@ -26,3 +26,16 @@ def create_style_from_existing(old_style, new_style, override_attr):
     style.configure(new_style, **new_attrs)
     style.map(new_style, **old_map)
     style.layout(new_style, old_layout)
+
+def lighten_color(color, factor=0.2):
+    '''Lightens an RGB color by blending it with white.'''
+    hex_color = color.strip("#")
+    if not hex_color.isnumeric():
+        return color
+    r, g, b = int(hex_color[0:2], 16), int(hex_color[2:4], 16), int(hex_color[4:6], 16)
+    # Lighten color by blending with white (255, 255, 255)
+    r = int(r + (255 - r) * factor)
+    g = int(g + (255 - g) * factor)
+    b = int(b + (255 - b) * factor)
+    # Convert back to Tkinter format (#RRGGBB)
+    return f'#{r:02x}{g:02x}{b:02x}'

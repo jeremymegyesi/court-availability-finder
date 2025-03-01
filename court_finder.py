@@ -55,7 +55,7 @@ class CourtFinder():
     async def _request_data(self, facility_data, location_data, duration):
         async with aiohttp.ClientSession() as session:
             # need get req to set session cookies and obtain rv token before availability post req
-            async with session.get(f'{facility_data['baseURL']}/Facility?facilityId={facility_data['facilityId']}') as get_req:
+            async with session.get(f'{facility_data['baseUrl']}/Facility?facilityId={facility_data['facilityId']}') as get_req:
                 content = await get_req.read()
                 soup = BeautifulSoup(content, 'lxml')
                 form_token = soup.find('input', attrs={'name': '__RequestVerificationToken'})['value']
@@ -72,7 +72,7 @@ class CourtFinder():
                     post_data.append(('durationIds[]', durationId))
 
                 r = await session.post(
-                    f'{facility_data['baseURL']}/FacilityAvailability',
+                    f'{facility_data['baseUrl']}/FacilityAvailability',
                     data=post_data,
                 )
                 return await r.read()
@@ -111,7 +111,7 @@ class CourtFinder():
 
     async def _get_facility_matches(self, location, location_data, facility, duration, avail):
         refined_data = {
-            'baseURL': location_data['baseURL'],
+            'baseUrl': location_data['baseUrl'],
             'daysCount': location_data['daysCount'],
             'serviceId': location_data['serviceId']
         }
@@ -123,7 +123,7 @@ class CourtFinder():
         }
         return self.get_matches(json.loads(r.decode('utf-8')), avail, facility_labels, duration)
     
-    def _print_results(self, matches):
+    def print_results(self, matches):
         if (len(matches) < 1):
             print('There are currently no available time slots')
         else:
@@ -156,7 +156,7 @@ class CourtFinder():
         # sort results by time
         sorted_matches = sorted(flattened_matches, key = lambda x: (x['start_time'], x['location'], x['facility']))
 
-        self._print_results(sorted_matches)
+        return sorted_matches
 
 
 def parse_availability_input(_avail):
@@ -235,7 +235,8 @@ def get_user_input(facility_data):
 async def main():
     broker = CourtFinder()
     user_input = get_user_input(broker.get_facility_data())
-    await broker.find_courts(user_input)
+    matches = await broker.find_courts(user_input)
+    broker.print_results(matches)
 
 if __name__ == '__main__':
     asyncio.run(main())

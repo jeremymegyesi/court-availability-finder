@@ -11,19 +11,18 @@ from ui_elements.constants import *
 from ui_elements.ui_utils import *
 from ui_elements.field_input import FieldInput, FieldInputType
 
-class TimeEntry(ttk.Entry):
+class TimeEntry(ttk.Frame):
     '''Entry that only accepts time values.'''
-    placeholder_text = '00:00'
     
-    def __init__(self, parent, row, column, padx = FIELD_ENTRY_PAD, pady = FIELD_ENTRY_PAD, **kwargs):
+    def __init__(self, parent, row, column, default='00:00', padx = FIELD_ENTRY_PAD, pady = FIELD_ENTRY_PAD, **kwargs):
         super().__init__(parent, **kwargs)
-        self._value = ttk.StringVar(value=self.placeholder_text)
+        self._default_value = default
+        self._value = ttk.StringVar(value=self._default_value)
 
-        time_entry_frame = ttk.Frame(parent)
-        time_entry_frame.grid(row=row, column=column, padx=padx, pady=pady)
+        self.grid(row=row, column=column, padx=padx, pady=pady)
 
         validate_cmd = self.register(self._validate_input)
-        self._entry = ttk.Entry(time_entry_frame, textvariable=self._value, width=5, validate='key', validatecommand=(validate_cmd, '%P'))
+        self._entry = ttk.Entry(self, textvariable=self._value, width=5, validate='key', validatecommand=(validate_cmd, '%P'))
         self._entry.grid(row=0, column=0)
 
         def focus_in(event):
@@ -31,7 +30,7 @@ class TimeEntry(ttk.Entry):
 
         def focus_out(event):
             if self.get() == '':
-                self.set(self.placeholder_text)  # Restore placeholder
+                self.set(self._default_value)  # Restore placeholder
 
         self._entry.bind('<FocusIn>', focus_in)
         self._entry.bind('<FocusOut>', focus_out)
@@ -39,7 +38,7 @@ class TimeEntry(ttk.Entry):
 
         # Tweak secondary menubutton style
         create_style_from_existing('secondary.TMenubutton', 'TIMEENTRY.TMenubutton', {'font': ('Arial', 10)})
-        self._dropdown = create_menu_button(self, time_entry_frame, ['AM', 'PM'], 'AM', 'TIMEENTRY.TMenubutton', width=3)
+        self._dropdown = create_menu_button(self, self, ['AM', 'PM'], 'AM', 'TIMEENTRY.TMenubutton', width=3)
         self._dropdown.grid(row=0, column=1)
 
     def get(self):
