@@ -20,7 +20,7 @@ WINDOW_BOTTOM_PAD = 20
 class DatetimeWindow(ttk.Frame):
     '''Date and time pickers to allow date and time ranges to be specified.'''
     
-    def __init__(self, parent, row, **kwargs):
+    def __init__(self, parent, row, min_time_window_var=0, **kwargs):
         super().__init__(parent, **kwargs)
 
         style = ttk.Style()
@@ -42,10 +42,11 @@ class DatetimeWindow(ttk.Frame):
         # time inputs
         time_window_frame = ttk.Frame(datetime_window_frame, style=(style_prefix + '.TFrame'))
         time_window_frame.grid(row=0, column=1, sticky='e', padx=(TIME_RANGE_OFFSET, BORDER_WIDTH), pady=BORDER_WIDTH)
-        self._from_time_entry = TimeEntry(time_window_frame, 0, 0)
+        self._from_time_entry = TimeEntry(time_window_frame, 0, 0, default='00:00')
         time_until_label = ttk.Label(time_window_frame, text='-', style=(style_prefix + '.TLabel'))
         time_until_label.grid(row=0, column=1, padx=10)
         self._to_time_entry = TimeEntry(time_window_frame, 0, 2, default='23:59')
+        self._from_time_entry.set_latter_widget(self._to_time_entry)
 
 
     def get(self):
@@ -57,6 +58,9 @@ class DatetimeWindow(ttk.Frame):
             'end_time': date_utils.extract_time(self._to_time_entry.get())
         }
         return user_input
+    
+    def reload(self):
+        self._from_time_entry.reload()
 
 # Example usage
 def test():
