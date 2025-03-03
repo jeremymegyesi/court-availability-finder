@@ -37,16 +37,25 @@ class FieldInput(ttk.Frame):
         match type:
             case FieldInputType.TEXT:
                 self._input = ttk.Entry(field_frame, width=input_width, style=self._append_style_prefix('TEntry'))
+                self._input.bind('<KeyRelease>', self._on_input_change)
             case FieldInputType.DROPDOWN:
                 self._input = create_menu_button(self, field_frame, params['menu_options'], params['default_value'], 'secondary.TMenubutton')
+                self._input.bind('<<ComboboxSelected>>', self._on_input_change)
             case FieldInputType.DATE:
-                self._input =  ttk.DateEntry(field_frame, width=input_width, dateformat='%Y/%m/%d', bootstyle=SECONDARY)
+                self._input = ttk.DateEntry(field_frame, width=input_width, dateformat='%Y/%m/%d', bootstyle=SECONDARY)
+                self._input_val = ttk.StringVar()
+                self._input_val.set(self._input.entry.get())
+                self._input.entry.configure(textvariable=self._input_val)
+                self._input_val.trace_add('write', lambda *args: self._on_input_change())
         
         self._input.grid(row=0, column=1, padx=FIELD_ENTRY_PAD, pady=FIELD_ENTRY_PAD)
         
         if suffix:
             self.suffix = ttk.Label(field_frame, text=suffix, style=self._append_style_prefix('TLabel'))
             self.suffix.grid(row=0, column=2)
+
+    def _on_input_change(self):
+        self.event_generate('<<FieldInputChanged>>')
 
     def get(self):
         '''Get the current text in the Entry field.'''
@@ -58,10 +67,15 @@ class FieldInput(ttk.Frame):
             case FieldInputType.TEXT:
                 return self._input.get()
 
-    def set(self, text):
-        '''Set the text of the Entry field.'''
-        self._input.delete(0, 'end')
-        self._input.insert(0, text)
+    def set(self, value):
+        '''Set the value of the input.'''
+        match self._type:
+            case FieldInputType.DROPDOWN:
+                self._dropdown_value.set(value)
+            case FieldInputType.DATE:
+                self._input_val.set(value.strftime('%Y/%m/%d'))
+            case FieldInputType.TEXT:
+                self._input.set(value)
 
     def _append_style_prefix(self, name):
         return (self._style_prefix + '.' if self._style_prefix else '') + name

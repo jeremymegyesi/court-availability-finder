@@ -20,7 +20,7 @@ WINDOW_BOTTOM_PAD = 20
 class DatetimeWindow(ttk.Frame):
     '''Date and time pickers to allow date and time ranges to be specified.'''
     
-    def __init__(self, parent, row, min_time_window_var=0, **kwargs):
+    def __init__(self, parent, row, **kwargs):
         super().__init__(parent, **kwargs)
 
         style = ttk.Style()
@@ -47,7 +47,22 @@ class DatetimeWindow(ttk.Frame):
         time_until_label.grid(row=0, column=1, padx=10)
         self._to_time_entry = TimeEntry(time_window_frame, 0, 2, default='23:59')
         self._from_time_entry.set_latter_widget(self._to_time_entry)
+        self._from_date_select.bind("<<FieldInputChanged>>", lambda e: self.after(200, self._catch_up_from_date))
+        self._to_date_select.bind("<<FieldInputChanged>>", lambda e: self.after(200, self._rollback_to_date))
 
+    def _catch_up_from_date(self):
+        curr = self.get()
+        if not curr['start_date'] or not curr['end_date']:
+            return
+        if curr['end_date'] < curr['start_date']:
+            self._to_date_select.set(curr['start_date'])
+
+    def _rollback_to_date(self):
+        curr = self.get()
+        if not curr['start_date'] or not curr['end_date']:
+            return
+        if curr['end_date'] < curr['start_date']:
+            self._from_date_select.set(curr['end_date'])
 
     def get(self):
         '''Get the combined inputs of date and time fields.'''
@@ -58,9 +73,6 @@ class DatetimeWindow(ttk.Frame):
             'end_time': date_utils.extract_time(self._to_time_entry.get())
         }
         return user_input
-    
-    def reload(self):
-        self._from_time_entry.reload()
 
 # Example usage
 def test():

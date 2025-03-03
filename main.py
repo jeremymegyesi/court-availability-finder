@@ -1,4 +1,3 @@
-import asyncio.base_futures
 from async_tkinter_loop import async_handler, async_mainloop
 import ctypes
 import tkinter as tk

@@ -231,7 +231,6 @@ def get_user_input(facility_data):
         'location': location
     }
 
-# TODO: add price estimate
 async def main():
     broker = CourtFinder()
     user_input = get_user_input(broker.get_facility_data())
