@@ -1,190 +1,202 @@
-from async_tkinter_loop import async_handler, async_mainloop
 import ctypes
 import tkinter as tk
 import ttkbootstrap as ttk
+from async_tkinter_loop import async_handler, async_mainloop
+from constants import *
 from ui_elements import *
 from court_finder import CourtFinder
 from ttkbootstrap.constants import *
 import uuid
 
-# Enable DPI awareness (fix blurry text in Windows)
-ctypes.windll.shcore.SetProcessDpiAwareness(1)
+class App:
+    def __init__(self, root):
+        self.root = root
+        self.style = ttk.Style(theme='solar')
+        self.avail_rows = []
+        self.broker = CourtFinder()
+        self.configure_styles()
+        self.setup_ui()
 
-style = ttk.Style(theme='solar')
-style.configure('TLabelframe.Label', font=HEADER_1_FONT)
-style.configure('TLabel', font=HEADER_1_FONT)
-style.configure('TMenubutton', font=BODY_1_FONT)
-style.configure('secondary.Outline.TButton', font=BODY_1_FONT, relief=FLAT, borderwidth=0)
-style.map('secondary.Outline.TButton', background=[('active', style.lookup('TFrame', 'background'))])
-style.configure('TButton', font=BUTTON_FONT)
-style.configure('Treeview.Heading', font=HEADER_1_FONT)
-style.configure('Treeview', font=BODY_1_FONT)
+    def configure_styles(self):
+        self.style.configure('TLabelframe.Label', font=HEADER_1_FONT)
+        self.style.configure('TLabel', font=HEADER_1_FONT)
+        self.style.configure('TMenubutton', font=BODY_1_FONT)
+        self.style.configure('secondary.Outline.TButton', font=BODY_1_FONT, relief=FLAT, borderwidth=0)
+        self.style.map('secondary.Outline.TButton', background=[('active', self.style.lookup('TFrame', 'background'))])
+        self.style.configure('TButton', font=BUTTON_FONT)
+        self.style.configure('Treeview.Heading', font=HEADER_1_FONT)
+        self.style.configure('Treeview', font=BODY_1_FONT)
 
-root = style.master
-root.option_add('*Menu*Font', ('Arial', 12))
-root.geometry(f'{WINDOW_WIDTH}x{WINDOW_HEIGHT}')
-root.title('Court Finder')
-root.columnconfigure(0, weight=1)
-root.rowconfigure(0, weight=1)
+    def setup_ui(self):
+        self.root.option_add('*Menu*Font', BODY_1_FONT)
+        self.root.geometry(f'{WINDOW_WIDTH}x{WINDOW_HEIGHT}')
+        self.root.title('Court Finder')
+        self.root.columnconfigure(0, weight=1)
+        self.root.rowconfigure(0, weight=1)
 
-# center content in middle of window
-content_frame = ttk.Frame(root, width=1400)
-content_frame.grid(row=0, column=0, sticky='ns')
-# set weight for results table, allowing vertical expansion
-content_frame.rowconfigure(2, weight=1)
+        # Center content in middle of window
+        self.content_frame = ttk.Frame(self.root, width=1400)
+        self.content_frame.grid(row=0, column=0, sticky='ns')
+        self.content_frame.columnconfigure(0, weight=1)
+        self.content_frame.rowconfigure(2, weight=1)
 
-inputs_frame = ttk.LabelFrame(content_frame, text='Enter your availability', style=PRIMARY)
-# put frame at center
-inputs_frame.grid(row=0, column=0, sticky='nwe', padx=FIELD_FRAME_PAD, pady=FIELD_FRAME_PAD)
+        self.setup_inputs()
+        self.setup_results()
+        self.setup_buttons()
 
-inputs_r1_frame = ttk.Frame(inputs_frame)
-inputs_r1_frame.grid(row=0, column=0, sticky='w')
+    def setup_inputs(self):
+        self.inputs_frame = ttk.LabelFrame(self.content_frame, text='Enter your availability', style=PRIMARY)
+        self.inputs_frame.grid(row=0, column=0, sticky='nwe', padx=FIELD_FRAME_PAD, pady=FIELD_FRAME_PAD)
 
-# availability inputs
-dur_menu_params = {
-    'menu_options': ['30', '60', '90', '120'],
-    'default_value': '90'
-}
-dur_menu_button = FieldInput(inputs_r1_frame, 0, 0, type=FieldInputType.DROPDOWN, label_text='Duration:',
-                                         suffix='mins', params=dur_menu_params)
+        self.inputs_r1_frame = ttk.Frame(self.inputs_frame)
+        self.inputs_r1_frame.grid(row=0, column=0, sticky='w')
 
-loc_menu_params = {
-    'menu_options': ['Any', 'Oak Bay Recreation', 'Panorama Recreation'],
-    'default_value': 'Any'
-}
-loc_menu_button = FieldInput(inputs_r1_frame, 0, 1, type=FieldInputType.DROPDOWN, label_text='Location:',
-                                          params=loc_menu_params)
+        # Availability inputs
+        self.dur_menu_params = {
+            'menu_options': ['30', '60', '90', '120'],
+            'default_value': '90'
+        }
+        self.dur_menu_button = FieldInput(self.inputs_r1_frame, 0, 0, type=FieldInputType.DROPDOWN, label_text='Duration:',
+                                          suffix='mins', params=self.dur_menu_params)
 
-# datetime ranges
-availability_frame = ttk.Frame(inputs_frame)
-availability_frame.grid(row=1, column=0, sticky='w', padx=FIELD_FRAME_PAD)
-availability_label = ttk.Label(availability_frame, text='Available times:', font=HEADER_1_FONT)
-availability_label.grid(row=0, column=0, sticky='w',
-                padx=FIELD_LABEL_PAD, pady= FIELD_LABEL_PAD)
+        self.loc_menu_params = {
+            'menu_options': ['Any', 'Oak Bay Recreation', 'Panorama Recreation'],
+            'default_value': 'Any'
+        }
+        self.loc_menu_button = FieldInput(self.inputs_r1_frame, 0, 1, type=FieldInputType.DROPDOWN, label_text='Location:',
+                                          params=self.loc_menu_params)
 
-# availability windows
-avail_windows_frame = ttk.Frame(availability_frame)
-avail_windows_frame.grid(row=1, column=0)
-avail_rows = []
-delete_icon = tk.PhotoImage(file='imgs/trash-icon.png')
+        # Datetime ranges
+        self.availability_frame = ttk.Frame(self.inputs_frame)
+        self.availability_frame.grid(row=1, column=0, sticky='w', padx=FIELD_FRAME_PAD)
+        self.availability_label = ttk.Label(self.availability_frame, text='Available times:', font=HEADER_1_FONT)
+        self.availability_label.grid(row=0, column=0, sticky='w', padx=FIELD_LABEL_PAD, pady=FIELD_LABEL_PAD)
 
-def remove_row(row_id):
-    index = next((i for i, row in enumerate(avail_rows) if row['row_id'] == row_id), None)
-    if index is not None:
-        avail_rows[index]['row_frame'].destroy()
-        del avail_rows[index]
-    # reconfigure grid rows
-    for i, row in enumerate(avail_rows):
-        row['row_frame'].grid_configure(row=i)
-    # check if delete should be disabled
-    if len(avail_rows) == 1:
-        avail_rows[0]['delete_button'].grid_remove()
+        # Availability windows
+        self.avail_windows_frame = ttk.Frame(self.availability_frame)
+        self.avail_windows_frame.grid(row=1, column=0)
+        self._delete_icon = tk.PhotoImage(file='imgs/trash-icon.png')
+        self.add_avail_row()
+        self.add_window_button = ttk.Button(self.availability_frame, text='+ Add Availability', style='secondary.Outline.TButton',
+                                            command=self.add_avail_row)
+        self.add_window_button.grid(row=2, column=0, sticky='w', padx=FIELD_FRAME_PAD, pady=(0, FIELD_FRAME_PAD))
 
-def add_avail_row():
-    row_frame = ttk.Frame(avail_windows_frame)
-    row_frame.grid(row=len(avail_rows), column=0, sticky='nswe', padx=FIELD_FRAME_PAD, pady=(0, 20))
-    window = DatetimeWindow(row_frame)
-    row_id = uuid.uuid4()
-    delete_button = ttk.Button(row_frame, image=delete_icon, compound='left', style=DANGER, command=lambda row=row_id: remove_row(row))
-    delete_button.grid(row=0, column=1, sticky='w', padx=DELETE_BUTTON_PAD_X)
-    avail_rows.append({'row_id': row_id, 'row_frame': row_frame, 'window': window, 'delete_button': delete_button})
-    # check if delete should be disabled
-    if len(avail_rows) == 1:
-        delete_button.grid_remove()
-    else:
-        # make sure previous row's delete is reenabled
-        avail_rows[-2]['delete_button'].grid_configure(row=0, column=1)
-add_window_button = ttk.Button(availability_frame, text='+ Add Availability', style='secondary.Outline.TButton',
-                               command=add_avail_row)
-add_window_button.grid(row=2, column=0, sticky='w', padx=FIELD_FRAME_PAD, pady=(0, FIELD_FRAME_PAD))
-add_avail_row()
+    def setup_results(self):
+        self.results_frame = ttk.LabelFrame(self.content_frame, text='Results', style=PRIMARY)
+        self.results_frame.grid(row=2, column=0, sticky='nswe', padx=FIELD_FRAME_PAD, pady=FIELD_FRAME_PAD)
+        self.results_frame.rowconfigure(0, weight=1)
+        self.results_frame.columnconfigure(0, weight=1)
 
-def get_user_inputs():
-    user_inputs = {}
-    user_inputs['duration'] = int(dur_menu_button.get())
-    user_inputs['location'] = loc_menu_button.get()
-    user_inputs['availability'] = [row['window'].get() for row in avail_rows]
-    return user_inputs
+        # Create a Treeview widget (Table)
+        column_config = {
+            'Date': {'width': 250},
+            'Start Time': {'width': 200},
+            'End Time': {'width': 200},
+            'Location': {'width': 300, 'hyperlink': True, 'hyperlink_params': ['Location']},
+            'Facility': {'width': 200, 'stretch': True, 'hyperlink': True, 'hyperlink_params': ['Location', 'Facility']}
+        }
+        coldata = [{'text': x, 'width': column_config[x].get('width', 200), 'stretch': column_config[x].get('stretch', False)} for x in column_config.keys()]
+        self.table = LoadingTable(self.results_frame, column_config, coldata=coldata, bootstyle=PRIMARY)
+        self._external_icon = tk.PhotoImage(file='imgs/external-link-icon.png')
 
-table_data = []
-broker = CourtFinder()
+    def setup_buttons(self):
+        self.input_buttons_frame = ttk.Frame(self.content_frame)
+        self.input_buttons_frame.grid(row=1, column=0, sticky='w', padx=FIELD_FRAME_PAD, pady=BUTTON_BELOW_PAD_Y)
 
-# Results
-results_frame = ttk.LabelFrame(content_frame, text='Results', style=PRIMARY)
-results_frame.grid(row=2, column=0, sticky='nswe', padx=FIELD_FRAME_PAD, pady=FIELD_FRAME_PAD)
-results_frame.rowconfigure(0, weight=1)
-results_frame.columnconfigure(0, weight=1)
+        self.search_icon = tk.PhotoImage(file='imgs/search-icon.png')
+        self.search_button = ttk.Button(self.input_buttons_frame, text=' Search', image=self.search_icon, compound='left', command=async_handler(self.search_courts))
+        self.search_button.grid(row=0, column=0, padx=(0, FIELD_LABEL_PAD))
 
-def create_loc_url(location):
-    facility_data = broker.get_facility_data()
-    return facility_data[location]['listUrl']
+        self.reset_icon = tk.PhotoImage(file='imgs/reset-icon.png')
+        self.reset_inputs_button = ttk.Button(self.input_buttons_frame, text=' Reset', image=self.reset_icon, compound='left', style=SECONDARY, command=self.reset_inputs)
+        self.reset_inputs_button.grid(row=0, column=1)
 
-def create_facility_url(location, facility):
-    facility_data = broker.get_facility_data()
-    facilities = facility_data[location]['facilities']
-    facility_id = next((i['facilityId'] for i in facilities if i['name'] == facility), None)
-    return f'{facility_data[location]['baseUrl']}/Facility?facilityId={facility_id}'
+    def add_avail_row(self):
+        row_frame = ttk.Frame(self.avail_windows_frame)
+        row_frame.grid(row=len(self.avail_rows), column=0, sticky='nswe', padx=FIELD_FRAME_PAD, pady=(0, FIELD_FRAME_PAD))
+        window = DatetimeWindow(row_frame)
+        row_id = uuid.uuid4()
+        delete_button = ttk.Button(row_frame, image=self._delete_icon, compound='left', style=DANGER, command=lambda row=row_id: self.remove_row(row))
+        delete_button.grid(row=0, column=1, sticky='w', padx=DELETE_BUTTON_PAD_X)
+        self.avail_rows.append({'row_id': row_id, 'row_frame': row_frame, 'window': window, 'delete_button': delete_button})
+        # Check if delete should be disabled
+        if len(self.avail_rows) == 1:
+            delete_button.grid_remove()
+        else:
+            # Make sure previous row's delete is reenabled
+            self.avail_rows[-2]['delete_button'].grid_configure(row=0, column=1)
 
-# Create a Treeview widget (Table)
-column_config = {
-    'Date': {'width': 250},
-    'Start Time': {'width': 200},
-    'End Time': {'width': 200},
-    'Location': {'width': 300, 'hyperlink': True, 'hyperlink_params': ['Location']},
-    'Facility': {'width': 200, 'stretch': True, 'hyperlink': True, 'hyperlink_params': ['Location', 'Facility']}
-}
-coldata = [{'text': x, 'width': column_config[x].get('width', 200), 'stretch': column_config[x].get('stretch', False)} for x in column_config.keys()]
-table = LoadingTable(results_frame, column_config, coldata=coldata, bootstyle=PRIMARY)
-external_icon = tk.PhotoImage(file='imgs/external-link-icon.png')
+    def remove_row(self, row_id):
+        index = next((i for i, row in enumerate(self.avail_rows) if row['row_id'] == row_id), None)
+        if index is not None:
+            self.avail_rows[index]['row_frame'].destroy()
+            del self.avail_rows[index]
+        # Reconfigure grid rows
+        for i, row in enumerate(self.avail_rows):
+            row['row_frame'].grid_configure(row=i)
+        # Check if delete should be disabled
+        if len(self.avail_rows) == 1:
+            self.avail_rows[0]['delete_button'].grid_remove()
 
-async def populate_table(user_input):
-    # Clear rows
-    table.delete_rows()
-    table.reset_table()
-    table.clear_url_map()
-    table.start_loading()
-    table_data = await broker.find_courts(user_input)
-    for row in table_data:
-        location = row['location']
-        facility = row['facility']
-        table.add_to_url_map(f'{location}', create_loc_url(location))
-        table.add_to_url_map(f'{location}.{facility}', create_facility_url(location, facility))
-        table.insert_row(tk.END,
-                values=(
-                    row['start_time'].strftime('%a (%b %d)').upper(),
-                    row['start_time'].strftime('%I:%M%p'),
-                    row['end_time'].strftime('%I:%M%p'),
-                    f'{location} 🔗',
-                    f'{facility} 🔗'
-                )
-                )
-    table.load_table_data()
-    table.stop_loading()
+    def get_user_inputs(self):
+        user_inputs = {}
+        user_inputs['duration'] = int(self.dur_menu_button.get())
+        user_inputs['location'] = self.loc_menu_button.get()
+        user_inputs['availability'] = [row['window'].get() for row in self.avail_rows]
+        return user_inputs
 
-async def search_courts():
-    search_button.config(state=tk.DISABLED)
-    input = get_user_inputs()
-    await populate_table(input)
-    search_button.config(state=tk.NORMAL)
+    def reset_inputs(self):
+        self.dur_menu_button.set(self.dur_menu_params['default_value'])
+        self.loc_menu_button.set(self.loc_menu_params['default_value'])
+        for row in self.avail_rows:
+            row['row_frame'].destroy()
+        self.avail_rows = []
+        self.add_avail_row()
 
-input_buttons_frame = ttk.Frame(content_frame)
-input_buttons_frame.grid(row=1, column=0, sticky='w', padx=FIELD_FRAME_PAD, pady=BUTTON_BELOW_PAD)
+    async def populate_table(self, user_input):
+        # Clear rows
+        self.table.delete_rows()
+        self.table.reset_table()
+        self.table.clear_url_map()
+        self.table.start_loading()
+        table_data = await self.broker.find_courts(user_input)
+        for row in table_data:
+            location = row['location']
+            facility = row['facility']
+            self.table.add_to_url_map(f'{location}', self._create_loc_url(location))
+            self.table.add_to_url_map(f'{location}.{facility}', self._create_facility_url(location, facility))
+            self.table.insert_row(tk.END,
+                    values=(
+                        row['start_time'].strftime('%a (%b %d)').upper(),
+                        row['start_time'].strftime('%I:%M%p'),
+                        row['end_time'].strftime('%I:%M%p'),
+                        f'{location} 🔗',
+                        f'{facility} 🔗'
+                    )
+                    )
+        self.table.load_table_data()
+        self.table.stop_loading()
 
-search_icon = tk.PhotoImage(file='imgs/search-icon.png')
-search_button = ttk.Button(input_buttons_frame, text=' Search', image=search_icon, compound='left', command=async_handler(search_courts))
-search_button.grid(row=0, column=0, padx=(0, 15))
+    async def search_courts(self):
+        self.search_button.config(state=tk.DISABLED)
+        input = self.get_user_inputs()
+        await self.populate_table(input)
+        self.search_button.config(state=tk.NORMAL)
 
-def reset_inputs():
-    global avail_rows
-    dur_menu_button.set(dur_menu_params['default_value'])
-    loc_menu_button.set(loc_menu_params['default_value'])
-    for row in avail_rows:
-        row['row_frame'].destroy()
-    avail_rows = []
-    
-    add_avail_row()
-reset_icon = tk.PhotoImage(file='imgs/reset-icon.png')
-reset_inputs_button = ttk.Button(input_buttons_frame, text=' Reset', image=reset_icon, compound='left', style=SECONDARY, command=reset_inputs)
-reset_inputs_button.grid(row=0, column=1)
+    def _create_loc_url(self, location):
+        facility_data = self.broker.get_facility_data()
+        return facility_data[location]['listUrl']
 
-async_mainloop(root)
+    def _create_facility_url(self, location, facility):
+        facility_data = self.broker.get_facility_data()
+        facilities = facility_data[location]['facilities']
+        facility_id = next((i['facilityId'] for i in facilities if i['name'] == facility), None)
+        return f'{facility_data[location]["baseUrl"]}/Facility?facilityId={facility_id}'
+
+if __name__ == '__main__':
+    # Enable DPI awareness (fix blurry text in Windows)
+    ctypes.windll.shcore.SetProcessDpiAwareness(1)
+
+    root = ttk.Window(themename='solar')
+    app = App(root)
+    async_mainloop(root)

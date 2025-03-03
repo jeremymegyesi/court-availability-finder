@@ -8,7 +8,7 @@ import sys
 import os
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(SCRIPT_DIR))
-from ui_elements.constants import *
+from constants import *
 from ui_elements.ui_utils import *
 from ui_elements.field_input import FieldInput, FieldInputType
 
@@ -75,10 +75,6 @@ class TimeEntry(ttk.Frame):
     def set_latter_widget(self, widget):
         '''Set the widget that must have a later value than this widget.'''
         self._latter_widget = widget
-
-    def update_latter_widget(self): 
-        if self._latter_widget is None:
-            return
         
         # Convert to time object
         def convert_time_str(time_str):
@@ -149,7 +145,7 @@ class TimeEntry(ttk.Frame):
 def test():
     root = ttk.Window(themename='darkly')
     # Create custom FieldInput widget
-    time_entry = TimeEntry(root, 0, 0)
+    TimeEntry(root, 0, 0)
     root.mainloop()
 
 if __name__ == '__main__':

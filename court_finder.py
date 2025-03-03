@@ -1,4 +1,3 @@
-from requests_html import HTMLSession
 from bs4 import BeautifulSoup
 import datetime
 import json
@@ -77,7 +76,7 @@ class CourtFinder():
                 )
                 return await r.read()
 
-    def get_matches(self, booking_avail, personal_avail, labels, duration):
+    def _get_matches(self, booking_avail, personal_avail, labels, duration):
         avail_days = booking_avail['availabilities']
 
         matches = []
@@ -121,7 +120,7 @@ class CourtFinder():
             'location': location,
             'facility': facility['name']
         }
-        return self.get_matches(json.loads(r.decode('utf-8')), avail, facility_labels, duration)
+        return self._get_matches(json.loads(r.decode('utf-8')), avail, facility_labels, duration)
     
     def print_results(self, matches):
         if (len(matches) < 1):
@@ -159,7 +158,7 @@ class CourtFinder():
         return sorted_matches
 
 
-def parse_availability_input(_avail):
+def _parse_availability_input(_avail):
     # parse user input
     avail = _avail.split(',')
     for i, window in enumerate(avail):
@@ -207,7 +206,7 @@ def get_user_input(facility_data):
         _avail = input(TextEffect.BOLD + TextEffect.BLUE + '\nDates and times?\n' + TextEffect.END +
             TextEffect.ITALICS + '(ex. "tue 06-22:30,thu-fri,2025/02/12 08:30-12")\n' +
             '("any xx-xx" - any day of week. Leave time window blank for all-day availability):\n' + TextEffect.END)
-        avail = parse_availability_input(_avail)
+        avail = _parse_availability_input(_avail)
         if avail is None:
             print(TextEffect.RED + '\nERROR: Invalid availability. Try again.\n' + TextEffect.END)
 

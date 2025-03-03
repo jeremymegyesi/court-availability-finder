@@ -1,11 +1,12 @@
 import ttkbootstrap as ttk
-import tkinter as tk
 from ttkbootstrap.constants import *
 from enum import Enum
-from .constants import *
-from .ui_utils import *
-
-FIELD_LABEL_PAD = 15
+import sys
+import os
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(os.path.dirname(SCRIPT_DIR))
+from constants import *
+from ui_elements.ui_utils import *
 
 class FieldInputType(Enum):
     TEXT = 'text'
@@ -48,6 +49,9 @@ class FieldInput(ttk.Frame):
                 self._input.entry.configure(textvariable=self._input_val)
                 self._input_val.trace_add('write', lambda *args: self._on_input_change())
         
+        if not self._input:
+            return
+
         self._input.grid(row=0, column=1, padx=FIELD_ENTRY_PAD, pady=FIELD_ENTRY_PAD)
         
         if suffix:
@@ -84,13 +88,13 @@ class FieldInput(ttk.Frame):
 def test():
     root = ttk.Window(themename='darkly')
     # Create custom FieldInput widget
-    custom_entry = FieldInput(root, type='dropdown', label_text='Username:', suffix='Last Name',
-                            params={
-                                'menu_options': ['mike', 'daniel', 'john'],
-                                'default_value': 'john'
-                                }
-                            )
+    FieldInput(root, 0, 0, type=FieldInputType.DROPDOWN, label_text='Username:', suffix='Last Name',
+                params={
+                    'menu_options': ['mike', 'daniel', 'john'],
+                    'default_value': 'john'
+                    }
+                )
     root.mainloop()
 
-if __name__ == '__main()__':
+if __name__ == '__main__':
     test()

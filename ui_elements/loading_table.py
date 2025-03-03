@@ -12,7 +12,7 @@ import sys
 import os
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(SCRIPT_DIR))
-from ui_elements.constants import *
+from constants import *
 from ui_elements.ui_utils import *
 
 class LoadingTable(Tableview):
@@ -20,7 +20,7 @@ class LoadingTable(Tableview):
     
     def __init__(self, parent, column_config, **kwargs):
         style = ttk.Style()
-        style.configure('Custom.TLabel', font=TABLE_MSG_FONT)
+        style.configure('LT.TLabel', font=TABLE_MSG_FONT)
         table_background = style.lookup('Treeview', 'fieldbackground', default='gray')
         super().__init__(parent, stripecolor=(lighten_color(table_background, 0.1), None), **kwargs)
         
@@ -35,7 +35,7 @@ class LoadingTable(Tableview):
         self._loading_frames = self._prepare_frames(self._loading_gif)
         self._loading_gif = self._loading_frames[0]
         self._current_frame = 0
-        self._overlay = ttk.Label(parent, textvariable=self._overlay_msg, background=table_background, style='Custom.TLabel')
+        self._overlay = ttk.Label(parent, textvariable=self._overlay_msg, background=table_background, style='LT.TLabel')
 
         self.grid(row=0, column=0, padx=FIELD_FRAME_PAD, pady=FIELD_FRAME_PAD, sticky='nsew')
         self._center_overlay()
