@@ -22,7 +22,7 @@ class LoadingTable(Tableview):
         style = ttk.Style()
         style.configure('LT.TLabel', font=TABLE_MSG_FONT)
         table_background = style.lookup('Treeview', 'fieldbackground', default='gray')
-        super().__init__(parent, stripecolor=(lighten_color(table_background, 0.1), None), **kwargs)
+        super().__init__(parent, stripecolor=(darken_color(table_background, 0.1), None), **kwargs)
         
         self._loading = False
         self._column_config = column_config
@@ -70,7 +70,7 @@ class LoadingTable(Tableview):
             values = self.view.item(item_id, 'values')
             col_index = next(i for i, col in enumerate(columns) if col.headertext == col_name)
             return values[col_index].strip(' 🔗')
-        if item_id and self._column_config[col_name]['hyperlink']:
+        if item_id and col_name in self._column_config and self._column_config[col_name].get('hyperlink'):
             path = '.'.join([get_column_value(x) for x in self._column_config[col_name]['hyperlink_params']])
             url = self._url_map[path]
             webbrowser.open(url)

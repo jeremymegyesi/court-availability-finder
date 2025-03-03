@@ -9,7 +9,7 @@ sys.path.append(os.path.dirname(SCRIPT_DIR))
 from constants import *
 from ui_elements.field_input import FieldInput, FieldInputType
 from ui_elements.time_entry import TimeEntry
-from ui_elements.ui_utils import lighten_color
+from ui_elements.ui_utils import darken_color
 import date_utils
 
 class DatetimeWindow(ttk.Frame):
@@ -19,13 +19,13 @@ class DatetimeWindow(ttk.Frame):
         super().__init__(parent, **kwargs)
 
         style = ttk.Style()
-        bg_color = lighten_color(style.lookup('TFrame', 'background'))
+        bg_color = darken_color(style.lookup('TFrame', 'background'), factor=0.1)
         style_prefix = 'DTWINDOW'
-        style.configure(style_prefix + '.Bordered.TFrame', background=bg_color, borderwidth=LT_BORDER_WIDTH, relief='solid')
+        style.configure(style_prefix + '.Bordered.Info.TFrame', background=bg_color, borderwidth=LT_BORDER_WIDTH, relief='solid', bordercolor=style.colors.get(INFO))
         style.configure(style_prefix + '.TFrame', background=bg_color)
         style.configure(style_prefix + '.TLabel', background=bg_color, font=BODY_1_FONT)
 
-        datetime_window_frame = ttk.Frame(parent, style=(style_prefix + '.Bordered.TFrame'))
+        datetime_window_frame = ttk.Frame(parent, style=(style_prefix + '.Bordered.Info.TFrame'))
         datetime_window_frame.grid(row=0, column=0)
         # date picker inputs
         date_window_frame = ttk.Frame(datetime_window_frame, style=(style_prefix + '.TFrame'))
@@ -40,7 +40,7 @@ class DatetimeWindow(ttk.Frame):
         self._from_time_entry = TimeEntry(time_window_frame, 0, 0, default='00:00')
         time_until_label = ttk.Label(time_window_frame, text='-', style=(style_prefix + '.TLabel'))
         time_until_label.grid(row=0, column=1, padx=10)
-        self._to_time_entry = TimeEntry(time_window_frame, 0, 2, default='23:59')
+        self._to_time_entry = TimeEntry(time_window_frame, 0, 2, default='23:59', padx=(FIELD_ENTRY_PAD, FIELD_FRAME_PAD))
         self._from_time_entry.set_latter_widget(self._to_time_entry)
         self._from_date_select.bind("<<FieldInputChanged>>", lambda e: self.after(200, self._catch_up_from_date))
         self._to_date_select.bind("<<FieldInputChanged>>", lambda e: self.after(200, self._rollback_to_date))

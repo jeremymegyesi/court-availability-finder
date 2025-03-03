@@ -11,7 +11,7 @@ import uuid
 class App:
     def __init__(self, root):
         self.root = root
-        self.style = ttk.Style(theme='solar')
+        self.style = ttk.Style('courteous')
         self.avail_rows = []
         self.broker = CourtFinder()
         self.configure_styles()
@@ -45,7 +45,7 @@ class App:
         self.setup_buttons()
 
     def setup_inputs(self):
-        self.inputs_frame = ttk.LabelFrame(self.content_frame, text='Enter your availability', style=PRIMARY)
+        self.inputs_frame = ttk.LabelFrame(self.content_frame, text='Enter your availability', style=INFO)
         self.inputs_frame.grid(row=0, column=0, sticky='nwe', padx=FIELD_FRAME_PAD, pady=FIELD_FRAME_PAD)
 
         self.inputs_r1_frame = ttk.Frame(self.inputs_frame)
@@ -82,7 +82,7 @@ class App:
         self.add_window_button.grid(row=2, column=0, sticky='w', padx=FIELD_FRAME_PAD, pady=(0, FIELD_FRAME_PAD))
 
     def setup_results(self):
-        self.results_frame = ttk.LabelFrame(self.content_frame, text='Results', style=PRIMARY)
+        self.results_frame = ttk.LabelFrame(self.content_frame, text='Results', style=INFO)
         self.results_frame.grid(row=2, column=0, sticky='nswe', padx=FIELD_FRAME_PAD, pady=FIELD_FRAME_PAD)
         self.results_frame.rowconfigure(0, weight=1)
         self.results_frame.columnconfigure(0, weight=1)
