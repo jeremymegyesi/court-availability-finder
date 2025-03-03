@@ -20,7 +20,7 @@ WINDOW_BOTTOM_PAD = 20
 class DatetimeWindow(ttk.Frame):
     '''Date and time pickers to allow date and time ranges to be specified.'''
     
-    def __init__(self, parent, row, **kwargs):
+    def __init__(self, parent, **kwargs):
         super().__init__(parent, **kwargs)
 
         style = ttk.Style()
@@ -31,7 +31,7 @@ class DatetimeWindow(ttk.Frame):
         style.configure(style_prefix + '.TLabel', background=bg_color, font=BODY_1_FONT)
 
         datetime_window_frame = ttk.Frame(parent, style=(style_prefix + '.Bordered.TFrame'))
-        datetime_window_frame.grid(row=row, column=0, sticky='nswe', padx=FIELD_FRAME_PAD, pady=(0, WINDOW_BOTTOM_PAD))
+        datetime_window_frame.grid(row=0, column=0)
         # date picker inputs
         date_window_frame = ttk.Frame(datetime_window_frame, style=(style_prefix + '.TFrame'))
         date_window_frame.grid(row=0, column=0, sticky='nswe', padx=BORDER_WIDTH, pady=BORDER_WIDTH)
@@ -49,6 +49,10 @@ class DatetimeWindow(ttk.Frame):
         self._from_time_entry.set_latter_widget(self._to_time_entry)
         self._from_date_select.bind("<<FieldInputChanged>>", lambda e: self.after(200, self._catch_up_from_date))
         self._to_date_select.bind("<<FieldInputChanged>>", lambda e: self.after(200, self._rollback_to_date))
+
+    def _remove_row(self):
+        print('delete')
+        self.master.destroy()
 
     def _catch_up_from_date(self):
         curr = self.get()

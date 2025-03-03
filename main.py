@@ -5,7 +5,7 @@ import ttkbootstrap as ttk
 from ui_elements import *
 from court_finder import CourtFinder
 from ttkbootstrap.constants import *
-from itertools import accumulate
+import uuid
 
 # Enable DPI awareness (fix blurry text in Windows)
 ctypes.windll.shcore.SetProcessDpiAwareness(1)
@@ -14,6 +14,8 @@ style = ttk.Style(theme='solar')
 style.configure('TLabelframe.Label', font=HEADER_1_FONT)
 style.configure('TLabel', font=HEADER_1_FONT)
 style.configure('TMenubutton', font=BODY_1_FONT)
+style.configure('secondary.Outline.TButton', font=BODY_1_FONT, relief=FLAT, borderwidth=0)
+style.map('secondary.Outline.TButton', background=[('active', style.lookup('TFrame', 'background'))])
 style.configure('TButton', font=BUTTON_FONT)
 style.configure('Treeview.Heading', font=HEADER_1_FONT)
 style.configure('Treeview', font=BODY_1_FONT)
@@ -50,7 +52,7 @@ loc_menu_params = {
     'menu_options': ['Any', 'Oak Bay Recreation', 'Panorama Recreation'],
     'default_value': 'Any'
 }
-loc_field_button = FieldInput(inputs_r1_frame, 0, 1, type=FieldInputType.DROPDOWN, label_text='Location:',
+loc_menu_button = FieldInput(inputs_r1_frame, 0, 1, type=FieldInputType.DROPDOWN, label_text='Location:',
                                           params=loc_menu_params)
 
 # datetime ranges
@@ -59,15 +61,49 @@ availability_frame.grid(row=1, column=0, sticky='w', padx=FIELD_FRAME_PAD)
 availability_label = ttk.Label(availability_frame, text='Available times:', font=HEADER_1_FONT)
 availability_label.grid(row=0, column=0, sticky='w',
                 padx=FIELD_LABEL_PAD, pady= FIELD_LABEL_PAD)
-row1 = DatetimeWindow(availability_frame, 1)
-# TODO: add functionality for multiple availability windows
-windows = [row1]
+
+# availability windows
+avail_windows_frame = ttk.Frame(availability_frame)
+avail_windows_frame.grid(row=1, column=0)
+avail_rows = []
+delete_icon = tk.PhotoImage(file='imgs/trash-icon.png')
+
+def remove_row(row_id):
+    index = next((i for i, row in enumerate(avail_rows) if row['row_id'] == row_id), None)
+    if index is not None:
+        avail_rows[index]['row_frame'].destroy()
+        del avail_rows[index]
+    # reconfigure grid rows
+    for i, row in enumerate(avail_rows):
+        row['row_frame'].grid_configure(row=i)
+    # check if delete should be disabled
+    if len(avail_rows) == 1:
+        avail_rows[0]['delete_button'].grid_remove()
+
+def add_avail_row():
+    row_frame = ttk.Frame(avail_windows_frame)
+    row_frame.grid(row=len(avail_rows), column=0, sticky='nswe', padx=FIELD_FRAME_PAD, pady=(0, 20))
+    window = DatetimeWindow(row_frame)
+    row_id = uuid.uuid4()
+    delete_button = ttk.Button(row_frame, image=delete_icon, compound='left', style=DANGER, command=lambda row=row_id: remove_row(row))
+    delete_button.grid(row=0, column=1, sticky='w', padx=DELETE_BUTTON_PAD_X)
+    avail_rows.append({'row_id': row_id, 'row_frame': row_frame, 'window': window, 'delete_button': delete_button})
+    # check if delete should be disabled
+    if len(avail_rows) == 1:
+        delete_button.grid_remove()
+    else:
+        # make sure previous row's delete is reenabled
+        avail_rows[-2]['delete_button'].grid_configure(row=0, column=1)
+add_window_button = ttk.Button(availability_frame, text='+ Add Availability', style='secondary.Outline.TButton',
+                               command=add_avail_row)
+add_window_button.grid(row=2, column=0, sticky='w', padx=FIELD_FRAME_PAD, pady=(0, FIELD_FRAME_PAD))
+add_avail_row()
 
 def get_user_inputs():
     user_inputs = {}
     user_inputs['duration'] = int(dur_menu_button.get())
-    user_inputs['location'] = loc_field_button.get()
-    user_inputs['availability'] = [window.get() for window in windows]
+    user_inputs['location'] = loc_menu_button.get()
+    user_inputs['availability'] = [row['window'].get() for row in avail_rows]
     return user_inputs
 
 table_data = []
@@ -131,8 +167,24 @@ async def search_courts():
     await populate_table(input)
     search_button.config(state=tk.NORMAL)
 
+input_buttons_frame = ttk.Frame(content_frame)
+input_buttons_frame.grid(row=1, column=0, sticky='w', padx=FIELD_FRAME_PAD, pady=BUTTON_BELOW_PAD)
+
 search_icon = tk.PhotoImage(file='imgs/search-icon.png')
-search_button = ttk.Button(content_frame, text='Search ', image=search_icon, compound='right', command=async_handler(search_courts))
-search_button.grid(row=1, column=0, sticky='w', padx=FIELD_FRAME_PAD, pady=BUTTON_BELOW_PAD)
+search_button = ttk.Button(input_buttons_frame, text=' Search', image=search_icon, compound='left', command=async_handler(search_courts))
+search_button.grid(row=0, column=0, padx=(0, 15))
+
+def reset_inputs():
+    global avail_rows
+    dur_menu_button.set(dur_menu_params['default_value'])
+    loc_menu_button.set(loc_menu_params['default_value'])
+    for row in avail_rows:
+        row['row_frame'].destroy()
+    avail_rows = []
+    
+    add_avail_row()
+reset_icon = tk.PhotoImage(file='imgs/reset-icon.png')
+reset_inputs_button = ttk.Button(input_buttons_frame, text=' Reset', image=reset_icon, compound='left', style=SECONDARY, command=reset_inputs)
+reset_inputs_button.grid(row=0, column=1)
 
 async_mainloop(root)
