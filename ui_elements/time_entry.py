@@ -75,6 +75,10 @@ class TimeEntry(ttk.Frame):
     def set_latter_widget(self, widget):
         '''Set the widget that must have a later value than this widget.'''
         self._latter_widget = widget
+
+    def update_latter_widget(self): 
+        if self._latter_widget is None:
+            return
         
         # Convert to time object
         def convert_time_str(time_str):
