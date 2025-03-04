@@ -11,6 +11,9 @@ import uuid
 class App:
     def __init__(self, root):
         self.root = root
+        icon = tk.PhotoImage(file='imgs/app-icon.png')
+        root.iconphoto(True, icon)
+        root.iconbitmap('imgs/app-icon.ico')  # Windows fallback
         self.style = ttk.Style('courteous')
         self.avail_rows = []
         self.broker = CourtFinder()
