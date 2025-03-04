@@ -51,7 +51,7 @@ class LoadingTable(Tableview):
         frames = []
         for frame in ImageSequence.Iterator(gif):
             frame = frame.convert('RGBA')
-            frame = frame.resize((50, 50))
+            frame = frame.resize((150, 150))
             transparent_frame = Image.new('RGBA', frame.size)
             transparent_frame = Image.alpha_composite(transparent_frame, frame)
             frames.append(ImageTk.PhotoImage(transparent_frame))
@@ -121,7 +121,7 @@ class LoadingTable(Tableview):
             self._current_frame = (self._current_frame + 1) % len(self._loading_frames)
             self._overlay.configure(image=self._loading_frames[self._current_frame])
             self._overlay.image = self._loading_frames[self._current_frame] # Keep a reference to avoid garbage collection
-            self.after(100, self._animate_gif)  # Adjust the delay as needed
+            self.after(50, self._animate_gif)  # Adjust the delay as needed
 
 # Example usage
 def test():

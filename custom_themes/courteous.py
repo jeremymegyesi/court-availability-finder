@@ -2,22 +2,22 @@ USER_THEMES = {
     "courteous": {
         "type": "dark",
         "colors": {
-            "primary": "#e8a48a",
-            "secondary": "#94a2a4",
-            "success": "#44aca4",
-            "info": "#7dace6",
+            "primary": "#e79e83",
+            "secondary": "#96bcc7",
+            "success": "#44ac83",
+            "info": "#e9e9a7",
             "warning": "#ed9f1f",
             "danger": "#f85878",
             "light": "#A9BDBD",
             "dark": "#073642",
-            "bg": "#0e5844",
+            "bg": "#0d7679",
             "fg": "#ffffff",
             "selectbg": "#0b5162",
             "selectfg": "#ffffff",
             "border": "#00252e",
-            "inputfg": "#415454",
-            "inputbg": "#fdfeef",
-            "active": "#002730"
+            "inputfg": "#425964",
+            "inputbg": "#fafff2",
+            "active": "#00647d"
         }
     }
 }
