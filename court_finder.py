@@ -5,6 +5,11 @@ import re
 import asyncio
 import aiohttp
 import date_utils
+import sys
+import os
+
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(os.path.dirname(SCRIPT_DIR))
 
 class TextEffect:
    PURPLE = '\033[95m'
@@ -27,7 +32,7 @@ class CourtFinder():
     def __init__(self, **kwargs):
         # load facility data from file
         try:
-            with open('facility_data.json', 'r') as file:
+            with open(os.path.join(SCRIPT_DIR,'facility_data.json'), 'r') as file:
                 self._facility_data = json.load(file)
         except FileNotFoundError:
             raise Exception('Error occurred reading the facility configuration file')

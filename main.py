@@ -8,12 +8,24 @@ from court_finder import CourtFinder
 from ttkbootstrap.constants import *
 import uuid
 
+import os
+import sys
+
+# Ensure the app runs in the correct directory
+if getattr(sys, 'frozen', False):  # If running as a PyInstaller EXE
+    os.chdir(os.path.dirname(sys.executable))
+    img_path = os.path.join(sys._MEIPASS, 'imgs')
+else:
+    os.chdir(os.path.dirname(os.path.abspath(__file__)))
+    img_path = os.path.join(os.path.dirname(__file__), 'imgs')
+
+
 class App:
     def __init__(self, root):
         self.root = root
-        icon = tk.PhotoImage(file='imgs/app-icon.png')
+        icon = tk.PhotoImage(file=img_path + '/app-icon.png')
         root.iconphoto(True, icon)
-        root.iconbitmap('imgs/app-icon.ico')  # Windows fallback
+        root.iconbitmap(img_path + '/app-icon.ico')  # Windows fallback
         self.style = ttk.Style('courteous')
         self.avail_rows = []
         self.broker = CourtFinder()
@@ -78,7 +90,7 @@ class App:
         # Availability windows
         self.avail_windows_frame = ttk.Frame(self.availability_frame)
         self.avail_windows_frame.grid(row=1, column=0)
-        self._delete_icon = tk.PhotoImage(file='imgs/trash-icon.png')
+        self._delete_icon = tk.PhotoImage(file=img_path + '/trash-icon.png')
         self.add_avail_row()
         self.add_window_button = ttk.Button(self.availability_frame, text='+ Add Availability', style='secondary.Outline.TButton',
                                             command=self.add_avail_row)
@@ -100,17 +112,17 @@ class App:
         }
         coldata = [{'text': x, 'width': column_config[x].get('width', 200), 'stretch': column_config[x].get('stretch', False)} for x in column_config.keys()]
         self.table = LoadingTable(self.results_frame, column_config, coldata=coldata, bootstyle=PRIMARY)
-        self._external_icon = tk.PhotoImage(file='imgs/external-link-icon.png')
+        self._external_icon = tk.PhotoImage(file=img_path + '/external-link-icon.png')
 
     def setup_buttons(self):
         self.input_buttons_frame = ttk.Frame(self.content_frame)
         self.input_buttons_frame.grid(row=1, column=0, sticky='w', padx=FIELD_FRAME_PAD, pady=BUTTON_BELOW_PAD_Y)
 
-        self.search_icon = tk.PhotoImage(file='imgs/search-icon.png')
+        self.search_icon = tk.PhotoImage(file=img_path + '/search-icon.png')
         self.search_button = ttk.Button(self.input_buttons_frame, text=' Search', image=self.search_icon, compound='left', command=async_handler(self.search_courts))
         self.search_button.grid(row=0, column=0, padx=(0, FIELD_LABEL_PAD))
 
-        self.reset_icon = tk.PhotoImage(file='imgs/reset-icon.png')
+        self.reset_icon = tk.PhotoImage(file=img_path + '/reset-icon.png')
         self.reset_inputs_button = ttk.Button(self.input_buttons_frame, text=' Reset', image=self.reset_icon, compound='left', style=SECONDARY, command=self.reset_inputs)
         self.reset_inputs_button.grid(row=0, column=1)
 
