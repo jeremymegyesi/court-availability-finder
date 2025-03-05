@@ -45,7 +45,7 @@ class App:
     def setup_ui(self):
         self.root.option_add('*Menu*Font', BODY_1_FONT)
         self.root.geometry(f'{WINDOW_WIDTH}x{WINDOW_HEIGHT}')
-        self.root.title('Court Finder')
+        self.root.title('Court Finder Utility')
         self.root.columnconfigure(0, weight=1)
         self.root.rowconfigure(0, weight=1)
 
