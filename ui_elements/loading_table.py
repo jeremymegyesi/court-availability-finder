@@ -20,7 +20,7 @@ class LoadingTable(Tableview):
     
     def __init__(self, parent, column_config, **kwargs):
         style = ttk.Style()
-        style.configure('LT.TLabel', font=TABLE_MSG_FONT)
+        style.configure('LT.TLabel', font=TABLE_MSG_FONT, foreground=style.colors.get('inputfg'))
         table_background = style.lookup('Treeview', 'fieldbackground', default='gray')
         super().__init__(parent, stripecolor=(darken_color(table_background, 0.1), None), **kwargs)
         
