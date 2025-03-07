@@ -1,5 +1,6 @@
 {
     "Panorama Rec": {
+        "name": "Panorama Recreation",
         "baseUrl": "https://panoramarec.perfectmind.com/22938/Clients/BookMe4LandingPages",
         "listUrl": "https://panoramarec.perfectmind.com/22938/Clients/BookMe4FacilityList/List?calendarId=0f26b2f2-7e8f-4b7a-8c03-0f9bf90f535c&widgetId=9772cc8c-0fa7-49d3-bd46-b5c6dd9d9f19&embed=False",
         "daysCount": 10,
@@ -32,6 +33,7 @@
         ]
     },
     "Oak Bay Rec": {
+        "name": "Oak Bay Recreation",
         "baseUrl": "https://oakbayrec.perfectmind.com/22950/Clients/BookMe4LandingPages",
         "listUrl": "https://oakbayrec.perfectmind.com/22950/Clients/BookMe4FacilityList/List?calendarId=bda8e8a2-9ca8-46d5-8122-d273384445d6&widgetId=0a2c5485-59bf-4b1f-ad17-20e20b7aacd6",
         "daysCount": "7",

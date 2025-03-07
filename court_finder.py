@@ -145,8 +145,10 @@ class CourtFinder():
         all_matches = []
         tasks = []
         facility_data = self.get_facility_data()
-        locations = list(facility_data.keys()) if location.lower() == 'any' else \
-            [next(x for x in facility_data.keys() if x.lower() == location)]
+        abbr_loc_names = list(facility_data.keys())
+        locations = list(abbr_loc_names) if location.lower() == 'any' else \
+            [next((x for x in abbr_loc_names if x.lower() == location.lower() \
+                   or (facility_data.get(x) and facility_data.get(x).get('name').lower() == location.lower())), None)]
         
         # iterate through facilities to check their availabilities
         for location in locations:
