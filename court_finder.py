@@ -27,7 +27,7 @@ class TextEffect:
 DURATION_OPTIONS = [30, 60, 90, 120]
 
 class CourtFinder():
-    '''Web scraper to find court availability.'''
+    '''Web broker to find court availability.'''
     
     def __init__(self, **kwargs):
         # load facility data from file

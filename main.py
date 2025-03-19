@@ -14,10 +14,10 @@ import sys
 # Ensure the app runs in the correct directory
 if getattr(sys, 'frozen', False):  # If running as a PyInstaller EXE
     os.chdir(os.path.dirname(sys.executable))
-    img_path = os.path.join(sys._MEIPASS, 'imgs')
+    img_path = os.path.join(sys._MEIPASS, 'assets/imgs')
 else:
     os.chdir(os.path.dirname(os.path.abspath(__file__)))
-    img_path = os.path.join(os.path.dirname(__file__), 'imgs')
+    img_path = os.path.join(os.path.dirname(__file__), 'assets/imgs')
 
 
 class App:

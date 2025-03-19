@@ -31,7 +31,7 @@ class LoadingTable(Tableview):
         self._overlay_msg = ttk.StringVar(value=self._no_data_msg)
 
         # Load the GIF
-        self._loading_gif = Image.open(os.path.join(SCRIPT_DIR, '../imgs/loading.gif'))
+        self._loading_gif = Image.open(os.path.join(SCRIPT_DIR, '../assets/imgs/loading.gif'))
         self._loading_frames = self._prepare_frames(self._loading_gif)
         self._loading_gif = self._loading_frames[0]
         self._current_frame = 0
